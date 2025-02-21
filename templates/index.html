@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Coffee Shop{% endblock %}
+
+{% block content %}
+<div class="text-center mt-10">
+    <h1 class="text-4xl font-bold text-brown-700">Welcome to the Best Coffee Shop</h1>
+    <p class="text-lg text-gray-600 mt-2">Enjoy the finest coffee in town.</p>
+    
+    <a href="{% url 'menu' %}" class="mt-5 inline-block bg-brown-700 text-white px-5 py-3 rounded-md">
+        View Menu
+    </a>
+</div>
+{% endblock %}
