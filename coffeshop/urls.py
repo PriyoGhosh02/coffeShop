@@ -22,7 +22,7 @@ Including another URLconf
 # ]
 from django.contrib import admin
 from django.urls import path
-from shop.views import home, menu, cart, CustomLoginView, checkout, register
+from shop.views import home, menu, cart, CustomLoginView,product_detail, add_to_cart, checkout, register
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,5 +32,6 @@ urlpatterns = [
     path('checkout/', checkout, name='checkout'),  # Checkout URL
      path('register/', register, name='register'),  # Ensure this line exists
     path('login/', CustomLoginView.as_view(), name='login'),  # Login Page
+    path('product/<int:product_id>/', product_detail, name='product_detail'),
+    path('add-to-cart/<int:product_id>/', add_to_cart, name='add_to_cart'),
 ]
-
