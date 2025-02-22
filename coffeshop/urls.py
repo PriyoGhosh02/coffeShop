@@ -22,15 +22,15 @@ Including another URLconf
 # ]
 from django.contrib import admin
 from django.urls import path
-from shop.views import home, menu, cart, CustomLoginView, checkout
+from shop.views import home, menu, cart, CustomLoginView, checkout, register
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('menu/', menu, name='menu'),  # Add this line
     path('cart/', cart, name='cart'),  # Cart Page
-    path('checkout/', checkout, name='checkout'),  # Add this line for the checkout page
-    
+    path('checkout/', checkout, name='checkout'),  # Checkout URL
+     path('register/', register, name='register'),  # Ensure this line exists
     path('login/', CustomLoginView.as_view(), name='login'),  # Login Page
 ]
 
