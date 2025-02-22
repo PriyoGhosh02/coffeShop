@@ -7,7 +7,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, CartItem
+import stripe
+from django.conf import settings
+from django.http import JsonResponse
+from .models import Order
+from django.core.mail import send_mail
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     return render(request, 'index.html')
@@ -15,6 +21,11 @@ def home(request):
 def menu(request):
     return render(request, 'menu.html')  # Create this template
 
+# View Cart Page
+# def cart(request):
+#     cart_items = CartItem.objects.filter(user=request.user)
+#     total_price = sum(item.product.price * item.quantity for item in cart_items)
+#     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
 def cart(request):
     return render(request, 'cart.html')
@@ -53,21 +64,56 @@ def add_to_cart(request, product_id):
     cart_item.save()
     return redirect('cart')
 
-# View Cart Page
-# def cart(request):
-#     cart_items = CartItem.objects.filter(user=request.user)
-#     total_price = sum(item.product.price * item.quantity for item in cart_items)
-#     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
 
 # def checkout(request):
 #     return render(request, 'checkout.html') 
-    
+
 def checkout(request):
-    if not request.user.is_authenticated:
-        return redirect('login')  # Redirects to login if the user is not authenticated
+    if request.method == "POST":
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': 'Coffee Order',
+                            },
+                            'unit_amount': int(request.POST.get("total_amount")) * 100,  # Convert to cents
+                        },
+                        'quantity': 1,
+                    },
+                ],
+                mode='payment',
+                success_url='http://127.0.0.1:8000/payment-success/',
+                cancel_url='http://127.0.0.1:8000/payment-failed/',
+            )
 
-    cart_items = CartItem.objects.filter(user=request.user)
-    cart_total = sum(item.total for item in cart_items)
+            # Save order to database
+            order = Order.objects.create(user=request.user, total_amount=request.POST.get("total_amount"), payment_status="Pending")
+            order.save()
 
-    return render(request, 'checkout.html', {'cart_items': cart_items, 'cart_total': cart_total})
+            return JsonResponse({'sessionId': session.id})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return render(request, "checkout.html")
+
+def payment_success(request):
+    order = Order.objects.filter(user=request.user).latest('id')
+    order.payment_status = "Paid"
+    order.save()
+
+    # Send confirmation email
+    send_mail(
+        "Order Confirmation",
+        f"Dear {request.user.username},\n\nYour order has been successfully placed!\nOrder ID: {order.id}",
+        "coffeeshop@example.com",
+        [request.user.email],
+        fail_silently=False,
+    )
+
+    return render(request, "payment_success.html", {"order": order})

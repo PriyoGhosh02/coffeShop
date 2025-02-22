@@ -1,25 +1,45 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4">Checkout</h1>
-    
-    {% if cart_items %}
-        <ul>
-            {% for item in cart_items %}
-                <li class="mb-2">{{ item.name }} - {{ item.quantity }} x ${{ item.price }}</li>
-            {% endfor %}
-        </ul>
-        <p class="mt-4 font-semibold">Total: ${{ cart_total }}</p>
+{% block title %}Checkout - Coffee Shop{% endblock %}
 
-        <form method="POST">
-            {% csrf_token %}
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 mt-4 rounded">
-                Place Order
-            </button>
-        </form>
-    {% else %}
-        <p>Your cart is empty.</p>
-    {% endif %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold text-center text-brown-700">Checkout</h2>
+
+    <p class="text-center text-gray-600">Total Amount: <strong>$<span id="amount">{{ total_amount }}</span></strong></p>
+
+    <form id="checkout-form" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="total_amount" value="{{ total_amount }}">
+        <button id="checkout-button" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 mt-4">
+            Pay Now
+        </button>
+    </form>
 </div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    document.getElementById("checkout-button").addEventListener("click", function(e) {
+        e.preventDefault();
+        fetch("{% url 'checkout' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                total_amount: document.getElementById("amount").innerText
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sessionId) {
+                var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+                stripe.redirectToCheckout({ sessionId: data.sessionId });
+            } else {
+                alert("Payment failed! Try again.");
+            }
+        });
+    });
+</script>
 {% endblock %}
