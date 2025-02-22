@@ -3,8 +3,48 @@
 {% block title %}Cart - Coffee Shop{% endblock %}
 
 {% block content %}
-<div class="text-center mt-10">
-    <h1 class="text-4xl font-bold text-brown-700">Your Cart</h1>
-    <p class="text-lg text-gray-600 mt-2">Your selected coffee items will appear here.</p>
+<div class="container mx-auto mt-6">
+    <h1 class="text-4xl font-bold text-center text-brown-700">Your Cart</h1>
+
+    {% if cart_items %}
+    <div class="mt-6">
+        <table class="w-full border-collapse border border-gray-200">
+            <thead>
+                <tr class="bg-brown-700 text-white">
+                    <th class="p-3">Item</th>
+                    <th class="p-3">Price</th>
+                    <th class="p-3">Quantity</th>
+                    <th class="p-3">Total</th>
+                    <th class="p-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr class="text-center">
+                    <td class="p-3">{{ item.name }}</td>
+                    <td class="p-3">${{ item.price }}</td>
+                    <td class="p-3">{{ item.quantity }}</td>
+                    <td class="p-3">${{ item.total }}</td>
+                    <td class="p-3">
+                        <a href="{% url 'remove_from_cart' item.id %}" class="text-red-500">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="text-right mt-6">
+            <p class="text-lg font-bold">Total: ${{ cart_total }}</p>
+            <a href="{% url 'checkout' %}" class="bg-green-500 text-white px-4 py-2 rounded-lg">
+                Proceed to Checkout
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-600 mt-6">Your cart is empty.</p>
+    {% endif %}
+
+ 
+    
 </div>
 {% endblock %}

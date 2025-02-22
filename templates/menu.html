@@ -3,8 +3,39 @@
 {% block title %}Menu - Coffee Shop{% endblock %}
 
 {% block content %}
-<div class="text-center mt-10">
-    <h1 class="text-4xl font-bold text-brown-700">Our Menu</h1>
-    <p class="text-lg text-gray-600 mt-2">Explore our delicious coffee options.</p>
+<div class="container mx-auto mt-6">
+    <h1 class="text-4xl font-bold text-center text-brown-700">Our Coffee Menu</h1>
+
+    <!-- Filter Section -->
+    <div class="flex justify-center mt-6">
+        <input type="text" id="search" placeholder="Search coffee..."
+            class="border p-2 rounded-lg w-1/2" onkeyup="filterMenu()">
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+        {% for item in coffee_items %}
+        <div class="bg-white p-4 rounded-lg shadow-md text-center menu-item">
+            <img src="{{ item.image.url }}" class="w-full h-40 object-cover rounded-lg">
+            <h3 class="text-lg font-semibold mt-2">{{ item.name }}</h3>
+            <p class="text-gray-600">{{ item.description }}</p>
+            <p class="text-brown-700 font-bold mt-1">${{ item.price }}</p>
+            <a href="{% url 'cart' %}" class="block bg-brown-700 text-white px-4 py-2 mt-3 rounded-lg">
+                Add to Cart
+            </a>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+    function filterMenu() {
+        let search = document.getElementById('search').value.toLowerCase();
+        let items = document.querySelectorAll('.menu-item');
+
+        items.forEach(item => {
+            let name = item.querySelector('h3').innerText.toLowerCase();
+            item.style.display = name.includes(search) ? "block" : "none";
+        });
+    }
+</script>
 {% endblock %}
