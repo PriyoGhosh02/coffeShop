@@ -12,6 +12,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from .models import Order
 from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -117,3 +118,28 @@ def payment_success(request):
     )
 
     return render(request, "payment_success.html", {"order": order})
+
+@login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart_item, created = CartItem.objects.get_or_create(user=request.user, product=product)
+    
+    if not created:
+        cart_item.quantity += 1  # Increment quantity if already exists
+        cart_item.save()
+    
+    return redirect('cart_view')  # Redirect to cart page
+
+@login_required
+def cart_view(request):
+    cart_items = CartItem.objects.filter(user=request.user)
+    total_price = sum(item.total_price() for item in cart_items)
+    
+    return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
+
+@login_required
+def remove_from_cart(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    cart_item.delete()
+    return redirect('cart_view')
+

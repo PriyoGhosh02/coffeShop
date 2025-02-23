@@ -23,7 +23,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from shop.views import home, menu, cart, CustomLoginView,product_detail, add_to_cart, checkout, register
+from shop.views import home, menu, cart, CustomLoginView,product_detail, add_to_cart, checkout, register, cart_view, remove_from_cart
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,5 +38,7 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('product/<int:product_id>/', product_detail, name='product_detail'),
     path('add-to-cart/<int:product_id>/', add_to_cart, name='add_to_cart'),
+     path('cart/', cart_view, name='cart_view'),
+    path('remove-from-cart/<int:item_id>/', remove_from_cart, name='remove_from_cart'),
 ]
 
