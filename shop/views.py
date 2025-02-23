@@ -13,8 +13,22 @@ from django.http import JsonResponse
 from .models import Order
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.contrib.auth import login, authenticate
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def custom_login(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next')  # Check if there's a next parameter
+            return redirect(next_url if next_url else 'home')  # Redirect to home if no next URL
+    return render(request, 'login.html')
 
 def home(request):
     return render(request, 'index.html')
@@ -143,3 +157,12 @@ def remove_from_cart(request, item_id):
     cart_item.delete()
     return redirect('cart_view')
 
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('home')  # Redirect to home page after login
+    return render(request, 'login.html')
